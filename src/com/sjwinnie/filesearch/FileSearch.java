@@ -9,11 +9,16 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.awt.event.ActionEvent;
 
 
@@ -23,13 +28,16 @@ public class FileSearch {
 	private JTextField txtFldBaseFolder;
 	private JTextField txtFldKeyWords;
 	
+	private FileListView m_fileView;
+	
 	private String m_strBaseFold;
 	private String m_strKeyWords;
 	private Boolean m_bIsCaseSensitive;
 	
 	private File[] m_fileArray;
-	private static StringBuffer fileInfo;  
-	private static StringBuffer dirInfo;
+	private static ArrayList<String> m_strArrayFileInfo;  
+	private static ArrayList<String> m_strArrayDirInfo;
+	private static ArrayList<File>	m_lstFileModel;
 
 	/**
 	 * Launch the application.
@@ -61,7 +69,8 @@ public class FileSearch {
 		FileSearch = new JFrame();
 		FileSearch.setTitle("FileSearch");
 		FileSearch.setBounds(100, 100, 450, 300);
-		FileSearch.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		FileSearch.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);	
+		
 		
 		JLabel lblBaseFolder = new JLabel("Base Folder");
 		
@@ -88,29 +97,50 @@ public class FileSearch {
 		txtFldKeyWords.setColumns(10);
 		
 		JCheckBox cbxCaseSensitive = new JCheckBox("Case Sensitive");
+		m_bIsCaseSensitive = cbxCaseSensitive.isSelected();
+		
+		m_fileView = new FileListView();
 		
 		JButton btnSearch = new JButton("Search");
 		btnSearch.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if (m_strBaseFold == null)
+					return;
 				m_strKeyWords = txtFldKeyWords.getText();
 				m_bIsCaseSensitive = cbxCaseSensitive.isSelected();
 				
 				// searchfile from dir
 				m_fileArray = new File(m_strBaseFold).listFiles();
-				fileInfo = new StringBuffer();  
-		        dirInfo = new StringBuffer();  
-				for (File file : m_fileArray) {
-					if (file.isFile()) {  
-		                fileInfo.append(file.getName() + "    ");  
-		            } else if (file.isDirectory()) {  
-		                dirInfo.append(file.getName() + "    ");  
-		            } 
-				}
+				if (m_fileArray == null)
+					return;
+					
+				DefaultTableModel dtm = (DefaultTableModel) m_fileView.getModel();
+				dtm.getDataVector().clear();
+				if (m_fileView.isVisible())
+					m_fileView.updateUI();
 				
-				System.out.println(m_strBaseFold);  
-		        System.out.println("contains : ");  
-		        System.out.println("file ---> " + fileInfo);  
-		        System.out.println("dir  ---> " + dirInfo);  
+				for (File file : m_fileArray) {
+					if (file.isFile()) {
+						// ×Ö·û´®Æ¥Åä
+						String filename = file.getName();
+						Pattern pattern;
+						if(m_bIsCaseSensitive)
+							pattern = Pattern.compile(m_strKeyWords);
+						else
+							pattern = Pattern.compile(m_strKeyWords, Pattern.CASE_INSENSITIVE);
+						Matcher matcher = pattern.matcher(filename);
+						if (matcher.find()) {
+							Vector<String> v = new Vector<String>();
+							v.add(file.getName());
+							v.add(m_strBaseFold);
+							dtm.addRow(v);		
+						}				
+		            } 					
+				}			
+
+				// show UI
+				m_fileView.setVisible(true);			
+
 			}
 		});
 		
@@ -166,4 +196,5 @@ public class FileSearch {
 		FileSearch.getContentPane().setLayout(groupLayout);
 	}
 
+	
 }
