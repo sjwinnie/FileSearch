@@ -20,6 +20,11 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.awt.event.ActionEvent;
+import javax.swing.JComboBox;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JSeparator;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
 
 
 public class FileSearch {
@@ -35,9 +40,6 @@ public class FileSearch {
 	private Boolean m_bIsCaseSensitive;
 	
 	private File[] m_fileArray;
-	private static ArrayList<String> m_strArrayFileInfo;  
-	private static ArrayList<String> m_strArrayDirInfo;
-	private static ArrayList<File>	m_lstFileModel;
 
 	/**
 	 * Launch the application.
@@ -68,7 +70,7 @@ public class FileSearch {
 	private void initialize() {
 		FileSearch = new JFrame();
 		FileSearch.setTitle("FileSearch");
-		FileSearch.setBounds(100, 100, 450, 300);
+		FileSearch.setBounds(100, 100, 620, 373);
 		FileSearch.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);	
 		
 		
@@ -151,33 +153,161 @@ public class FileSearch {
 			}
 		});
 		
+		JLabel lblSearchMode = new JLabel("Search Mode");
+		
+		JComboBox cbxSearchMode = new JComboBox();
+		
+		cbxSearchMode.setModel(new DefaultComboBoxModel(new String[] {"Keywords Search", "Time Range Search"}));
+		
+		JLabel lblFileCreate = new JLabel("File Created");
+		
+		JComboBox cbxCreateTime = new JComboBox();
+		
+		cbxCreateTime.setModel(new DefaultComboBoxModel(new String[] {"Time Range", "All Times"}));
+		
+		JLabel lblFileModifed = new JLabel("File Modified");
+		
+		JComboBox cbxModifiedTime = new JComboBox();
+		
+		cbxModifiedTime.setModel(new DefaultComboBoxModel(new String[] {"Time Range", "All Times"}));
+		
+		JLabel lblFile = new JLabel("File Accessed");
+		
+		JComboBox cbxAccessedTime = new JComboBox();
+		
+		cbxAccessedTime.setModel(new DefaultComboBoxModel(new String[] {"Time Range", "All Times"}));
+				
+		
+		DateChooserJButton dtbCreatedTimeStart = new DateChooserJButton();
+		
+		DateChooserJButton dtbModifiedTimeStart = new DateChooserJButton();
+		
+		DateChooserJButton dtbAccessedTimeStart = new DateChooserJButton();
+		
+		DateChooserJButton dtbCreatedTimeEnd = new DateChooserJButton();
+		
+		DateChooserJButton dtbModifiedTimeEnd = new DateChooserJButton();
+		
+		DateChooserJButton dtbAccessedTimeEnd = new DateChooserJButton();
+		
+
+		cbxCreateTime.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				JComboBox cbx = (JComboBox) arg0.getSource();
+				int index = cbx.getSelectedIndex();
+				switch(index) {
+				case 0:
+					dtbCreatedTimeStart.setEnabled(true);
+					dtbCreatedTimeEnd.setEnabled(true);
+					break;
+				case 1:
+					dtbCreatedTimeStart.setEnabled(false);
+					dtbCreatedTimeEnd.setEnabled(false);
+					break;
+				default:
+					break;
+				}
+						
+			}
+		});
+		
+		cbxModifiedTime.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				JComboBox cbx = (JComboBox) arg0.getSource();
+				int index = cbx.getSelectedIndex();
+				switch(index) {
+				case 0:
+					dtbModifiedTimeStart.setEnabled(true);
+					dtbModifiedTimeEnd.setEnabled(true);
+					break;
+				case 1:
+					dtbModifiedTimeStart.setEnabled(false);
+					dtbModifiedTimeEnd.setEnabled(false);
+					break;
+				default:
+					break;
+				}
+						
+			}
+		});
+		
+		cbxAccessedTime.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				JComboBox cbx = (JComboBox) arg0.getSource();
+				int index = cbx.getSelectedIndex();
+				switch(index) {
+				case 0:
+					dtbAccessedTimeStart.setEnabled(true);
+					dtbAccessedTimeEnd.setEnabled(true);
+					break;
+				case 1:
+					dtbAccessedTimeStart.setEnabled(false);
+					dtbAccessedTimeEnd.setEnabled(false);
+					break;
+				default:
+					break;
+				}
+						
+			}
+		});
+		
 		
 		GroupLayout groupLayout = new GroupLayout(FileSearch.getContentPane());
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(37)
-					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
-						.addComponent(btnSearch)
-						.addGroup(groupLayout.createSequentialGroup()
-							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-								.addComponent(lblFileContains, GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE)
-								.addComponent(lblBaseFolder))
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
-								.addComponent(txtFldBaseFolder, GroupLayout.PREFERRED_SIZE, 174, GroupLayout.PREFERRED_SIZE)
-								.addComponent(txtFldKeyWords))))
+					.addGap(48)
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addComponent(lblFileContains, GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblBaseFolder)
+						.addComponent(lblSearchMode, GroupLayout.PREFERRED_SIZE, 75, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblFileCreate)
+						.addComponent(lblFileModifed)
+						.addComponent(lblFile))
 					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addComponent(cbxCaseSensitive)
-						.addComponent(btnBrowser)
-						.addComponent(btnCancel))
-					.addContainerGap(12, Short.MAX_VALUE))
+						.addGroup(groupLayout.createSequentialGroup()
+							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+								.addGroup(groupLayout.createSequentialGroup()
+									.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
+										.addComponent(cbxAccessedTime, Alignment.LEADING, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+										.addComponent(cbxModifiedTime, Alignment.LEADING, 0, 86, Short.MAX_VALUE))
+									.addGap(18)
+									.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+										.addComponent(dtbAccessedTimeStart, GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
+										.addComponent(dtbModifiedTimeStart, GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)))
+								.addGroup(groupLayout.createSequentialGroup()
+									.addComponent(cbxCreateTime, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+									.addGap(18)
+									.addComponent(dtbCreatedTimeStart, GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)))
+							.addGap(18)
+							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+								.addComponent(dtbAccessedTimeEnd, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
+								.addComponent(dtbCreatedTimeEnd, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
+								.addComponent(dtbModifiedTimeEnd, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
+								.addGroup(groupLayout.createSequentialGroup()
+									.addComponent(btnSearch)
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(btnCancel))))
+						.addGroup(groupLayout.createSequentialGroup()
+							.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
+								.addComponent(cbxSearchMode, Alignment.LEADING, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(txtFldBaseFolder, Alignment.LEADING)
+								.addComponent(txtFldKeyWords, Alignment.LEADING, 299, 299, Short.MAX_VALUE))
+							.addPreferredGap(ComponentPlacement.UNRELATED)
+							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+								.addComponent(cbxCaseSensitive)
+								.addComponent(btnBrowser))))
+					.addGap(129))
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(50)
+					.addGap(17)
+					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblSearchMode)
+						.addComponent(cbxSearchMode, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addGap(18)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblBaseFolder)
 						.addComponent(txtFldBaseFolder, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -187,7 +317,25 @@ public class FileSearch {
 						.addComponent(lblFileContains)
 						.addComponent(txtFldKeyWords, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(cbxCaseSensitive))
-					.addPreferredGap(ComponentPlacement.RELATED, 96, Short.MAX_VALUE)
+					.addGap(18)
+					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblFileCreate)
+						.addComponent(cbxCreateTime, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(dtbCreatedTimeStart, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
+						.addComponent(dtbCreatedTimeEnd, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE))
+					.addGap(18)
+					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblFileModifed)
+						.addComponent(cbxModifiedTime, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(dtbModifiedTimeStart, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
+						.addComponent(dtbModifiedTimeEnd, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE))
+					.addGap(18)
+					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblFile)
+						.addComponent(cbxAccessedTime, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(dtbAccessedTimeStart, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE)
+						.addComponent(dtbAccessedTimeEnd, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED, 46, Short.MAX_VALUE)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(btnSearch)
 						.addComponent(btnCancel))
@@ -195,6 +343,4 @@ public class FileSearch {
 		);
 		FileSearch.getContentPane().setLayout(groupLayout);
 	}
-
-	
 }
