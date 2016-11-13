@@ -443,88 +443,136 @@ public class FileSearch {
 		if(m_nSearchMode==0){	//关键字搜索
 			for (int i=0; i<nFileCount; ++i) {
 				File file = m_fileArray[i];
-				if (file.isFile()) {							
-					String filename = file.getName();
-					// 字符串匹配，正则表达式
-					Pattern pattern;
-					if(m_bIsCaseSensitive)
-						pattern = Pattern.compile(m_strKeyWords);
-					else
-						pattern = Pattern.compile(m_strKeyWords, Pattern.CASE_INSENSITIVE);
-					Matcher matcher = pattern.matcher(filename);
-					if (matcher.find()) {
-						Vector<String> v = new Vector<String>();
-						v.add(file.getName());
-						v.add(m_strBaseFold);
-						dtm.addRow(v);		
-					}				
-	            } 						
+				
+				// 判断文件
+				judgeFileByKeyWords(file);	
+				
 				// progressbar
 				progressBar.setValue(i*100/nFileCount);
 			}
 		}
 		else if(m_nSearchMode==1){	//时间范围搜索
-			Date dCreatedStart = null;
-			Date dCreatedEnd = null;
-			Date dModifiedStart = null;
-			Date dModifiedEnd = null;
-			Date dAccessedStart = null;
-			Date dAccessedEnd = null;
+			Date[] dTime = {null,null,null,null,null,null};
 			
-			boolean bCreatedRange = cbxCreatedTime.getSelectedIndex()==1;
-			boolean bModifiedRange = cbxModifiedTime.getSelectedIndex()==1;
-			boolean bAccessedRange = cbxAccessedTime.getSelectedIndex()==1;
+			boolean[] bRangeValid = new boolean[3];
+			bRangeValid[0] = cbxCreatedTime.getSelectedIndex()==1;
+			bRangeValid[1] = cbxModifiedTime.getSelectedIndex()==1;
+			bRangeValid[2] = cbxAccessedTime.getSelectedIndex()==1;
 					
-			if(bCreatedRange){
-				dCreatedStart = dtbCreatedTimeStart.getDate();
-				dCreatedEnd = dtbCreatedTimeEnd.getDate();
+			if(bRangeValid[0]){
+				dTime[0] = dtbCreatedTimeStart.getDate();
+				dTime[1] = dtbCreatedTimeEnd.getDate();
 			}
-			if(bModifiedRange){
-				dModifiedStart = dtbModifiedTimeStart.getDate();
-				dModifiedEnd = dtbModifiedTimeEnd.getDate();
+			if(bRangeValid[1]){
+				dTime[2] = dtbModifiedTimeStart.getDate();
+				dTime[3] = dtbModifiedTimeEnd.getDate();
 			}
-			if(bAccessedRange){
-				dAccessedStart = dtbAccessedTimeStart.getDate();
-				dAccessedEnd = dtbAccessedTimeEnd.getDate();
+			if(bRangeValid[2]){
+				dTime[4] = dtbAccessedTimeStart.getDate();
+				dTime[5] = dtbAccessedTimeEnd.getDate();
 			}
 			
 			for (int i=0; i<nFileCount; ++i) {
-				File file = m_fileArray[i];
-				
-				if (file.isFile()) {
-					BasicFileAttributeView basicview = Files.getFileAttributeView(file.toPath(), BasicFileAttributeView.class);
-					try {
-						BasicFileAttributes basicfile = basicview.readAttributes();
-					
-						Date created = new Date(basicfile.creationTime().toMillis());
-						Date modified = new Date(file.lastModified());
-						Date accessed = new Date(basicfile.lastAccessTime().toMillis());
-						
-						boolean bCreatedValid = bCreatedRange ? created.after(dCreatedStart) && created.before(dCreatedEnd) : true;
-						boolean bModifiedValid = bModifiedRange ? modified.after(dCreatedStart) && modified.before(dCreatedEnd) : true;
-						boolean bAccessedValid = bAccessedRange ? accessed.after(dAccessedStart) && accessed.before(dAccessedEnd) : true;
-						
-						if ( bCreatedValid && bModifiedValid && bAccessedValid) {
-							Vector<String> v = new Vector<String>();
-							v.add(file.getName());
-							v.add(m_strBaseFold);
-							dtm.addRow(v);		
-						}
-					
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
-	            } 						
+				File file = m_fileArray[i];				
+				judgeFileByTime(file,dTime,bRangeValid);
+													
 				// progressbar
 				progressBar.setValue(i*100/nFileCount);
 			}
 		}
 		progressBar.setValue(100);
 		
-		//progressBar.setVisible(false);
+		progressBar.setVisible(false);
 		
 		// show UI
 		m_fileView.setVisible(true);			
 	}
 	
+		
+	// 关键字判断
+	private void judgeFileByKeyWords(File file){
+		if(file==null)
+			return;
+		
+		if(file.isFile()){
+			String filename = file.getName();
+			
+			// 字符串匹配，正则表达式
+			Pattern pattern;
+			if(m_bIsCaseSensitive)
+				pattern = Pattern.compile(m_strKeyWords);
+			else
+				pattern = Pattern.compile(m_strKeyWords, Pattern.CASE_INSENSITIVE);
+			
+			Matcher matcher = pattern.matcher(filename);
+			if (matcher.find()) {
+				String filePath = file.getAbsolutePath();
+				int index = filePath.lastIndexOf(filename);
+				String fileFolder = filePath.substring(0, index);
+				
+				Vector<String> v = new Vector<String>();
+				v.add(filename);
+				v.add(fileFolder);
+				
+				DefaultTableModel dtm = (DefaultTableModel) m_fileView.getModel();
+				dtm.addRow(v);		
+			}
+		}
+		else if(file.isDirectory()){
+			File[] fileList = file.listFiles();
+			if(fileList==null)
+				return;
+			
+			for(File subFile : fileList){
+				judgeFileByKeyWords(subFile);
+			}
+		}
+	}
+	
+	// 时间判断
+	private void judgeFileByTime(File file, Date[] dTime, boolean[] bTimeRange){
+		if(file==null || dTime.length!=6 || bTimeRange.length!=3)
+			return;
+		
+		if(file.isFile()){
+			BasicFileAttributeView basicview = Files.getFileAttributeView(file.toPath(), BasicFileAttributeView.class);
+			try {
+				BasicFileAttributes basicfile = basicview.readAttributes();
+			
+				Date created = new Date(basicfile.creationTime().toMillis());
+				Date modified = new Date(file.lastModified());
+				Date accessed = new Date(basicfile.lastAccessTime().toMillis());
+				
+				boolean bCreatedValid = bTimeRange[0] ? created.after(dTime[0]) && created.before(dTime[1]) : true;
+				boolean bModifiedValid = bTimeRange[1] ? modified.after(dTime[2]) && modified.before(dTime[3]) : true;
+				boolean bAccessedValid = bTimeRange[2] ? accessed.after(dTime[4]) && accessed.before(dTime[5]) : true;
+				
+				if (bCreatedValid && bModifiedValid && bAccessedValid) {
+					String filename = file.getName();
+					String filePath = file.getAbsolutePath();
+					int index = filePath.lastIndexOf(filename);
+					String fileFolder = filePath.substring(0, index);
+					
+					Vector<String> v = new Vector<String>();
+					v.add(filename);
+					v.add(fileFolder);
+					
+					DefaultTableModel dtm = (DefaultTableModel) m_fileView.getModel();
+					dtm.addRow(v);		
+				}
+			
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
+		else if(file.isDirectory()){
+			File[] fileList = file.listFiles();
+			if(fileList==null)
+				return;
+			
+			for(File subFile : fileList){
+				judgeFileByTime(subFile,dTime,bTimeRange);
+			}
+		}
+	}
 }
